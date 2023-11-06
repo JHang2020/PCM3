@@ -14,6 +14,9 @@ python==3.8.13
 torch==1.9.0+cu111
 ```
 
+## Data Preparation
+Please refer to [skeleton-contrast](https://github.com/fmthoker/skeleton-contrast)
+
 ## Training and Testing
 Train on NTU 60-Xview:
 ```
