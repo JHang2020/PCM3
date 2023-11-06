@@ -1,5 +1,5 @@
 Pretrain命令：
-CUDA_VISIBLE_DEVICES=9 python pretrain_moco_mask.py --lr 0.02 --batch-size 128 --teacher-t 0.05 --student-t 0.1 --topk 16384 --mlp --contrast-t 0.07 --contrast-k 16384 --checkpoint-path /mnt/netdisk/zhangjh/Code/CMD-main/mask_checkpoints/both_prompt_r08 --schedule 351 --epochs 451 --pre-dataset ntu60 --skeleton-representation graph-based --protocol cross_view --exp-descri Mask_reconstruction_both_prompt_small_wsgencoder
+CUDA_VISIBLE_DEVICES=9 python pretrain_moco_mask.py --lr 0.02 --batch-size 128 --teacher-t 0.05 --student-t 0.1 --topk 16384 --mlp --contrast-t 0.07 --contrast-k 16384 --checkpoint-path mask_checkpoints/PCM3_wprompt --schedule 351 --epochs 451 --pre-dataset ntu60 --skeleton-representation graph-based --protocol cross_view --exp-descri PCM3_wprompt
 
 使用JointMask3 ratio = 0.6
 两个prompt，task-prompt的维度为128*2 = 256

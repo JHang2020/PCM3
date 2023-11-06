@@ -13,12 +13,11 @@ import torch.backends.cudnn as cudnn
 import torch.optim
 import torch.utils.data
 import torch.nn.functional as F
-
+import moco
 import torch.distributed as dist
 from utils import *
-import moco.builder_cmd
 from torch.utils.tensorboard import SummaryWriter
-from dataset import get_pretraining_set_base,get_pretraining_set_hiclr_motion
+from dataset import get_pretraining_set_base
 
 
 parser = argparse.ArgumentParser(description='PyTorch ImageNet Training')
@@ -55,7 +54,7 @@ parser.add_argument('--seed', default=42, type=int,
                     help='seed for initializing training. ')
 parser.add_argument('--checkpoint-path', default='./checkpoints', type=str)
 parser.add_argument('--stream', default='joint', type=str)
-parser.add_argument('--exp-descri', default='HiCLR', type=str)
+parser.add_argument('--exp-descri', default='', type=str)
 parser.add_argument('--skeleton-representation', type=str,
                     help='input skeleton-representation  for self supervised training (image-based or graph-based or seq-based)')
 parser.add_argument('--pre-dataset', default='ntu60', type=str,
@@ -140,12 +139,8 @@ def main_worker(args):
     # create model
     print("=> creating model")
     
-    if args.exp_descri == 'CMD':
-        model = moco.builder_cmd.MoCo(args.skeleton_representation, opts.bi_gru_model_args,
-                                  args.contrast_dim, args.contrast_k, args.contrast_m, args.contrast_t,
-                                  args.teacher_t, args.student_t, args.cmd_weight, args.topk, args.mlp)                             
-    else:
-        model = moco.builder_mask_recons.MoCo(args.skeleton_representation, opts.bi_gru_model_args,
+    
+    model = moco.builder_mask_recons.MoCo(args.skeleton_representation, opts.bi_gru_model_args,
                                   args.contrast_dim, args.contrast_k, args.contrast_m, args.contrast_t,
                                   args.teacher_t, args.student_t, args.cmd_weight, args.topk, args.mlp)
     
@@ -231,17 +226,17 @@ def train(train_loader, model, criterion, optimizer, epoch, args, f=None):
     batch_time = AverageMeter('Time', ':6.3f')
     data_time = AverageMeter('Data', ':6.3f')
     losses = AverageMeter('Loss', ':6.3f')
-    losses_base = AverageMeter('Loss basic', ':6.3f')
-    losses_nor = AverageMeter('Loss normal', ':6.3f')
-    losses_adain = AverageMeter('Loss adain', ':6.3f')
-    losses_mix = AverageMeter('Loss mix', ':6.3f')
+    losses_base = AverageMeter('Loss Basic', ':6.3f')
+    losses_mix = AverageMeter('Loss Mix', ':6.3f')
+    losses_mp = AverageMeter('Loss Mask&Predict', ':6.3f')
+    losses_rec = AverageMeter('Loss Reconstruction', ':6.3f')
     losses_sim = AverageMeter('Loss Sim', ':6.3f')
-    top1_joint = AverageMeter('Acc Joint@1', ':6.2f')
-    top1_motion = AverageMeter('Acc Motion@1', ':6.2f')
-    top1_bone = AverageMeter('Acc Bone@1', ':6.2f')
+    top1_joint = AverageMeter('Acc Basic@1', ':6.2f')
+    top1_motion = AverageMeter('Acc Mix@1', ':6.2f')
+    top1_bone = AverageMeter('Acc Predict@1', ':6.2f')
     progress = ProgressMeter(
         len(train_loader),
-        [batch_time, losses_base, losses_nor, losses_adain,losses_mix, losses_sim, top1_joint, top1_motion, top1_bone],
+        [batch_time, losses_base, losses_mix, losses_mp,losses_rec, losses_sim, top1_joint, top1_motion, top1_bone],
         prefix="Epoch: [{}] Lr_rate [{}]".format(epoch,optimizer.param_groups[0]['lr']))
     # switch to train mode
     model.train()
@@ -293,13 +288,13 @@ def train(train_loader, model, criterion, optimizer, epoch, args, f=None):
             batch_size = output1.size(0)
             # compute loss
             loss_base = criterion(output1, target)
-            loss_nor = criterion(output2, target)
+            loss_mix = criterion(output2, target)
             mask_region = (1.0-m).permute(0,4,1,3,2)#NCTVM
-            loss_mix = ((recons_data-inputs[2])*mask_region)**2
-            loss_mix = loss_mix.sum()/(mask_region.sum())
-            loss_adain = criterion(output4, target) + criterion(output3, target) 
+            loss_rec = ((recons_data-inputs[2])*mask_region)**2
+            loss_rec = loss_rec.sum()/(mask_region.sum())
+            loss_mp = criterion(output4, target) + criterion(output3, target) 
 
-            loss = loss_base + loss_nor + loss_sim + loss_mix*40 + loss_adain
+            loss = loss_base + loss_mix + loss_sim + loss_rec*40 + loss_mp
         elif args.exp_descri =='PCM3_woprompt':
             # for training stability of motion bone views 
             m = mask_gen(inputs[0]).cuda() #NTMVC
@@ -309,20 +304,20 @@ def train(train_loader, model, criterion, optimizer, epoch, args, f=None):
             batch_size = output1.size(0)
             # compute loss
             loss_base = criterion(output1, target)
-            loss_nor = criterion(output2, target)
+            loss_mix = criterion(output2, target)
             mask_region = (1.0-m).permute(0,4,1,3,2)#NCTVM
-            loss_mix = ((recons_data-inputs[2])*mask_region)**2
-            loss_mix = loss_mix.sum()/(mask_region.sum())
-            loss_adain = criterion(output3, target) + criterion(output4, target) 
+            loss_rec = ((recons_data-inputs[2])*mask_region)**2
+            loss_rec = loss_rec.sum()/(mask_region.sum())
+            loss_mp = criterion(output3, target) + criterion(output4, target) 
 
-            loss = loss_base + loss_nor + loss_mix * 40 + loss_adain
+            loss = loss_base + loss_mix + loss_rec * 40 + loss_mp
 
 
         losses.update(loss.item(), batch_size)
         losses_base.update(loss_base.item(), batch_size)
-        losses_nor.update(loss_nor.item(), batch_size)
-        losses_adain.update(loss_adain.item(), batch_size)
         losses_mix.update(loss_mix.item(), batch_size)
+        losses_mp.update(loss_mp.item(), batch_size)
+        losses_rec.update(loss_rec.item(), batch_size)
         losses_sim.update(loss_sim.item(), batch_size)
 
         # measure accuracy of model m1 and m2 individually
@@ -349,7 +344,7 @@ def train(train_loader, model, criterion, optimizer, epoch, args, f=None):
         if i % args.print_freq == 0 and args.local_rank in [-1, 0]:
             progress.display(i,f)
 
-    return losses_base, losses_nor, losses_adain, losses_sim, top1_joint, top1_motion, top1_bone
+    return losses_base, losses_mix, losses_mp, losses_sim, top1_joint, top1_motion, top1_bone
 
 
 def save_checkpoint(state, is_best, filename='checkpoint.pth.tar'):

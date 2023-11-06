@@ -71,7 +71,7 @@ class MoCo(nn.Module):
             self.topk = topk
             mlp=mlp
             print(" MoCo parameters",K,m,T,mlp)
-            print(" CMD parameters: teacher-T %.2f, student-T %.2f, cmd-weight: %.2f, topk: %d"%(teacher_T,student_T,cmd_weight,topk))
+            print(" PCM3 parameters: teacher-T %.2f, student-T %.2f, cmd-weight: %.2f, topk: %d"%(teacher_T,student_T,cmd_weight,topk))
             print(skeleton_representation)
 
             self.local_rank = 0
@@ -409,7 +409,6 @@ class MoCo(nn.Module):
         l_pos_mix = torch.einsum('nc,nc->n', [pc, kc]).unsqueeze(-1)
         l_neg_mix = torch.einsum('nc,ck->nk', [pc, self.queue.clone().detach()])
 
-        # CMD loss
         lk_neg = torch.einsum('nc,ck->nk', [k, self.queue.clone().detach()])
         lk_neg_mix = torch.einsum('nc,ck->nk', [kc, self.queue.clone().detach()])
         
@@ -418,7 +417,7 @@ class MoCo(nn.Module):
         lk_neg_topk = lk_neg
         topk_idx = torch.arange(0,lk_neg.shape[1]).cuda().unsqueeze(0).repeat(N,1)
         lk_neg_mix_topk = lk_neg_mix
-        
+        #from CMD
         loss_cmd = loss_kld(torch.gather(l_neg, -1, topk_idx) / self.student_T, lk_neg_topk / self.teacher_T) + loss_kld(torch.gather(l_neg_mix, -1, topk_idx) / self.student_T, lk_neg_mix_topk / self.teacher_T) + \
              loss_kld(torch.gather(l_neg_mask, -1, topk_idx) / self.student_T, lk_neg_topk / self.teacher_T) + loss_kld(torch.gather(l_neg_recons, -1, topk_idx) / self.student_T, lk_neg_topk / self.teacher_T)
         
@@ -557,7 +556,6 @@ class MoCo(nn.Module):
         l_pos_mix = torch.einsum('nc,nc->n', [pc, kc]).unsqueeze(-1)
         l_neg_mix = torch.einsum('nc,ck->nk', [pc, self.queue.clone().detach()])
 
-        # CMD loss
         lk_neg = torch.einsum('nc,ck->nk', [k, self.queue.clone().detach()])
         lk_neg_mix = torch.einsum('nc,ck->nk', [kc, self.queue.clone().detach()])
         
@@ -565,7 +563,7 @@ class MoCo(nn.Module):
         lk_neg_topk = lk_neg
         topk_idx = torch.arange(0,lk_neg.shape[1]).cuda().unsqueeze(0).repeat(N,1)
         lk_neg_mix_topk = lk_neg_mix
-        
+        #from CMD
         loss_cmd = loss_kld(torch.gather(l_neg, -1, topk_idx) / self.student_T, lk_neg_topk / self.teacher_T) + loss_kld(torch.gather(l_neg_mix, -1, topk_idx) / self.student_T, lk_neg_mix_topk / self.teacher_T) + \
              loss_kld(torch.gather(l_neg_mask, -1, topk_idx) / self.student_T, lk_neg_topk / self.teacher_T) + loss_kld(torch.gather(l_neg_recons, -1, topk_idx) / self.student_T, lk_neg_topk / self.teacher_T)
         
