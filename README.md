@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Prompted Contrast with Masked Motion Modeling: Towards Versatile 3D Action Representation Learning
 
 ### Accepted by **ACM MM 2023**. [[Paper Link]](https://arxiv.org/abs/2308.03975) [[Project Link]](https://jhang2020.github.io/Projects/PCM3/PCM3.html)
@@ -48,3 +49,10 @@ TODO
 
 ## Acknowledgment
 The framework of our code is based on [skeleton-contrast](https://github.com/fmthoker/skeleton-contrast).
+=======
+# PCM3
+Official Implementation of our paper, "Prompted Contrast with Masked Motion Modeling: Towards Versatile 3D Action Representation Learning", ACM MM, 2023.
+We are preparing the journal version of the work, and the code will be open source in the future.
+
+ 
+>>>>>>> 51a7383a6c2218f18695ea476f1bc84d281344e1
