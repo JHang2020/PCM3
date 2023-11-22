@@ -36,7 +36,7 @@ More streams can refer to **script_pretrain_moco.sh**.
 
 ## Pretrained Models
 
-NTU-60 and NTU-120: To release soon.
+NTU-60 and NTU-120: [[here]](https://drive.google.com/drive/folders/1Jqhoq0TJsx-KX6sw-tNbJ6dZwJ3R_kw6?usp=sharing).
 
 ## Citation
 
