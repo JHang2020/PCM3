@@ -38,7 +38,7 @@ CUDA_VISIBLE_DEVICES=0 python action_retrieval_cmd.py --lr 0.1 --batch-size 64 -
 ```
 
 Test on Action Detection
-Please Refer to our detection [repo]() due to the difference of codebase.
+Please Refer to our detection [repo](https://github.com/JHang2020/Simple-Skeleton-Detection/tree/main) due to the difference of codebase.
 
 More streams can refer to **script_pretrain_moco.sh**.
 
@@ -47,7 +47,7 @@ More streams can refer to **script_pretrain_moco.sh**.
 NTU-60 and NTU-120: [here](https://drive.google.com/drive/folders/1Jqhoq0TJsx-KX6sw-tNbJ6dZwJ3R_kw6)
 ### Main Results
 
-![](./images/pipe.jpg)
+![](./images/res.png)
 
 ## Citation
 
