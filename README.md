@@ -32,11 +32,22 @@ Test on linear action classification:
 CUDA_VISIBLE_DEVICES=1 python action_classification.py   --lr 0.1 --pretrained xxx_path --finetune-dataset ntu60 --protocol cross_view --finetune-skeleton-representation graph-based
 ```
 
+Test on Action Retrieval
+```
+CUDA_VISIBLE_DEVICES=0 python action_retrieval_cmd.py --lr 0.1 --batch-size 64 --knn-neighbours 1 --pretrained  xxx_path --finetune-dataset ntu60 --protocol cross_view --finetune-skeleton-representation graph-based  
+```
+
+Test on Action Detection
+Please Refer to our detection [repo]() due to the difference of codebase.
+
 More streams can refer to **script_pretrain_moco.sh**.
 
 ## Pretrained Models
 
-NTU-60 and NTU-120: To release soon.
+NTU-60 and NTU-120: [here](https://drive.google.com/drive/folders/1Jqhoq0TJsx-KX6sw-tNbJ6dZwJ3R_kw6)
+### Main Results
+
+![](./images/pipe.jpg)
 
 ## Citation
 
@@ -52,10 +63,6 @@ If you find this work useful for your research, please consider citing our work:
 }
 ```
 
-TODO
-
-- [ ] downstream task evaluation
-- [ ] release pretrained models
 
 ## Acknowledgment
 The framework of our code is based on [skeleton-contrast](https://github.com/fmthoker/skeleton-contrast).
